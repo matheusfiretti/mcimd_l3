@@ -1,0 +1,65 @@
+Prof. Guilherme Rodrigues
+1/2026 
+Questões de interesse 
+1. Usando Computação Bayesiana Aproximada (ABC), estime a 
+distribuição a posteriori para os parâmetros λ e µ.
+2. Teste (informalmente) a hipótese nula de que o tempo médio de 
+atendimento é superior ao dobro do tempo médio entre chegadas.
+3. Caso a empresa deseje que em 90% do tempo todos os clientes 
+na fila possam se sentar simultaneamente, quantas cadeiras seriam 
+necessárias? Dica: para cada amostra da posteriori, simule uma fila 
+e calcule a estatística desejada. Em seguida, analise os resultados. 
+4. Avalie se o tempo de espera reduziria caso houvesse duas filas 
+de atendimento independentes (considerando os mesmos 
+parâmetros estimados anteriormente - veja a figura acima). 
+5. O tamanho da fila é um desestímulo aos clientes. Ao ver uma fila 
+grande, o cliente desiste do atendimento com certa probabilidade. 
+Incorpore essa característica à sua simulação e estime quantas 
+pessoas desestiram do atendimento no dia em que os dados foram 
+coletados. Essa é uma atividade desafiadora e será corrigida como 
+bônus! Justifique suas suposições.   
+Simulando uma fila M/M/2 no R 
+pacman::p_load("queuecomputer", "ggplot2") 
+n <- 200 
+interarrivals <- rexp(n, .2) 
+arrivals <- cumsum(interarrivals) 
+arrivals <- arrivals[arrivals <= 600] 
+service <- rexp(length(arrivals), .1) 
+queue_obj <- queue_step(arrivals, service, 2) 
+summary(queue_obj) ; plot(queue_obj)
+Lista 3 - Métodos Computacionais Intensivos para Mineração de Dados 
+Contexto 
+"A teoria das filas é um ramo 
+da probabilidade que estuda a 
+formação de filas, através de 
+análises matemáticas precisas 
+e propriedades mensuráveis 
+das filas." (Wikipedia)  
+Problema 
+Considere uma fila do tipo     
+M/M/2 (veja o artigo citado 
+abaixo ou qualquer outra 
+referência sobre Teoria de 
+filas), com tempo entre 
+chegadas distribuído por uma  
+exponencial com parâmetro λ 
+e tempo de atendimento por 
+uma exponencial com 
+parâmetro μ. Suponha que 
+uma empresa receba clientes 
+entre 8h e 18h, e que, em um 
+dado dia, foi registrado tempo 
+médio de espera na fila de 
+duas horas e 30 minutos e 
+comprimento médio da fila de 
+22 pessoas. Note que como os 
+dados de cada cliente não 
+foram disponibilizados, a 
+verossimilhança não pode ser 
+calculada facilmente. Faça um 
+estudo de simulação para 
+responder as perguntas 
+elencadas a seguir.  
+Material de estudo 
+https://arxiv.org/pdf/
+1703.02151.pdf

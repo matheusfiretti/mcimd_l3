@@ -1,0 +1,264 @@
+Chapter 1
+Background
+Approximate Bayesian Computation methods are a family of simulation algorithms de-
+signed to produce samples from an approximate posterior distribution.
+Such methods
+were proposed as an alternative to standard Monte Carlo techniques to make statistical
+inference possible for a class of applied problems where the likelihood function cannot be
+evaluated. This chapter summarizes some of the most inﬂuential ABC approaches, partic-
+ularly those directly related to the content introduced in the following chapters. Section
+1.1 considers a simple introductory example of estimation via ABC. Then, in Section 1.2,
+we explore more deeply the nature of each of the input elements that deﬁne an ABC sam-
+pler (such as the summary statistics), taking the opportunity to provide some guidelines
+in regards to the question of how to specify them in practice. To conclude, several ABC
+approaches are reviewed in Section 1.3.
+1.1
+Introductory example
+A rejection-ABC algorithm was previously described in the Introduction section.
+We
+now turn our attention to a slightly more sophisticated version of ABC, known as ABC
+importance sampling. The underlying principle is common to both implementations –
+that is, to avoid direct evaluation of the likelihood by matching synthetic samples to an
+observed dataset. But rather than simply rejecting or accepting a candidate parameter,
+the latter algorithm generalizes the former by assigning an importance weight to each
+approximate posterior sample.
+The importance weights are deﬁned by three interrelated components. First, a function
+
+6
+Chapter 1.
+Background
+to compute summary statistics from data, S(X), is chosen to reduce the dimension of the
+objects being matched. Second, a distance metric, D(s, sobs) = ∥s −sobs∥, is employed to
+measure the degree of similarity between a synthetic sample s and the observed summary
+statistics sobs. Third, a weighting function, Kh(d), which is controlled by a bandwidth
+parameter h, sets the importance weights according to D(s, sobs) – the bigger the distance
+the smaller the weight.
+Algorithm 1 produces weighted samples from the ABC posterior approximation given
+by
+πABC(θ|sobs) =
+Z
+Kh(∥S(x) −sobs∥)p(x|θ)π(θ)dx.
+(1.1)
+It follows from Eq. (1.1) that if the analyst assigns weight proportional to one when the
+observed summary statistics are perfectly reproduced (∥S(x) −sobs∥= 0) and zero oth-
+erwise, then Algorithm 1 generates exact samples from the partial posterior distribution
+π(θ|sobs). However, this choice makes the sampler hopelessly ineﬃcient, as the probabil-
+ity of generating an acceptable match becomes prohibitively small. In general, specifying
+those three components is a delicate, non-trivial task.
+Algorithm 1 ABC Importance Sampling (vanilla version)
+Inputs:
+• A target posterior density π(θ|Xobs) ∝p(Xobs|θ)π(θ), consisting of a prior distri-
+bution π(θ) and a procedure for generating data under the model p(Xobs|θ).
+• An integer ˜N > 0.
+• An observed vector of summary statistics sobs = S(Xobs).
+• A kernel function Kh(u) and scale parameter h > 0.
+Sampling:
+For i = 1, . . . , ˜N:
+1. Generate θ(i) ∼π(θ) from the prior.
+2. Generate X(i) ∼p(X|θ(i)) from the likelihood.
+3. Compute the summary statistics s(i) = S(X(i)).
+4. Assign θ(i) the weight w(i) ∝Kh(∥s(i) −sobs∥).
+Output: A set of weighted parameter vectors {(θ(i), w(i))} ˜
+N
+i=1 ∼πABC(θ|sobs).
+Hereafter we explore – in a graphical, intuitive level – a simulated toy example to give
+the reader a gentle introduction to the ABC machinery, with main focus on its opera-
+tional aspects. For the sake of illustration, we consider a simple model characterized by a
+
+1.1.
+Introductory example
+7
+sequence of dependent stochastic events. Precisely, each observation, xi, i = 1, . . . , N, is
+obtained by (a) drawing a sample from a normal distribution with mean θ and variance
+1; and (b) if the value obtained in (a) is negative, multiplying it by -1 with probability
+p = 0.5. The fundamental feature being that the action, or lack of thereof, in step (b)
+is conditional on what happened in (a). Alternatively, this model can described by the
+following equations:
+xi =
+
+
+
+
+
+
+
+|yi|,
+with probability p = 0.5.
+yi,
+with probability 1 −p = 0.5.
+yi ∼N(θ, 1).
+We assigned a standard Gaussian prior for θ, which completes the (prior predictive)
+data generative process under consideration. Conditioned on θ = −1, which we take as the
+“true” parameter value, we simulated 50 samples from the model to act as the “observed”
+dataset. The density function p(X|θ = −1) is depicted in the bottom-right plot in Figure
+1.1.
+The likelihood can be easily evaluated here. However, in more elaborated construc-
+tions, where the number of probabilistic events are substantially higher, the conditional
+structure becomes overwhelmingly complex, rendering the likelihood intractable (Luciani
+et al., 2009; Tanaka et al., 2006). The epidemiological model analyzed in Chapter 2, for
+example, assumes that, in each time step, several random events can take place for each
+member of the population, depending on their current status – subjects can get infected,
+recover, die, etc. The number of distinct ways in which the population could have reached
+its ﬁnal, observed state is extraordinarily large.
+In this study, the univariate data is summarized by its sample mean, ¯x, and standard
+deviation, ˆσ. The Euclidean distance and the Epanechnikov kernel were chosen as the
+distance metric and the weighting function respectively. Algorithm 1 was then used to
+generate ˜N = 1000 approximate samples from the ABC posterior distribution for a number
+of tolerances h.
+The upper-left plot in Figure 1.1 show the objects generated by Steps 1 to 3 of Al-
+gorithm 1. Each parameter θ(1), . . . , θ( ˜
+N) is associated to two points in the plot – one
+representing the mean and the other the standard deviation of the corresponding synthetic
+
+8
+Chapter 1.
+Background
+sample. The relationship between the parameter of interest and the summary statistics
+forms an interesting pattern. When θ is large, the probability of generating a negative
+sample y becomes negligible, so the density function eﬀectively becomes a single normal
+distribution centered at θ. In this region, the sample mean is suﬃcient for θ, while the
+standard deviation becomes uninformative – notice the cluster formed around the true
+standard deviation σ = 1. On the other side of the coordinate axis, when θ is, say, less
+then -3, then each generated data point is reﬂected with probability 0.5, turning the den-
+sity function into a mixture of two normals with opposite means. In this case, ¯x estimates
+E(X|θ) ≈0, carrying no useful information about θ. The standard deviation, however,
+assumes a linear, negative relationship with θ.
+The vertical lines represent the “observed” summary statistics. We see that the model
+can only reproduce ˆσ ≈1.5 if θ is in a neighborhood of -1. The plots in the right-hand-side
+explore the relationship between θ and the computed Euclidean distances ∥s(i) −sobs∥.
+Again, the observed patterns suggests that the distance can only be small if θ ≈−1.
+Step 4 of Algorithm 1 is illustrated by the following plots of Figure 1.1. We ﬁrst set h
+so that 25% of the candidate parameters are assigned positive weights. As the majority of
+the original samples were discarded, the clouds of points now cluster more closely around
+the vertical lines. As h is further reduced, the samples get even closer the space over which
+the exact posterior is supported. On the other hand, the number of accepted samples also
+shrinks, which prompts an increase in the Monte Carlo error. This trade-oﬀ, which is a
+well-known feature of ABC methods, is observed in the bottom-left plot of Figure 1.1.
+1.2
+Constructing an ABC sampler in practice
+For any given model, there are numerous ways to setup an ABC sampler. For a more
+extensive introduction to the ABC literature, see Sisson et al. (2017a); Beaumont (2010);
+Csillery et al. (2010); Lopes and Beaumont (2010); Bertorelle et al. (2010); Sisson and
+Fan (2011); Turner and Van Zandt (2012); Blum et al. (2013). As illustrated in our toy
+example, deﬁning an appropriate weighting system is paramount to alleviate the ABC
+approximation error.
+
+1.2.
+Constructing an ABC sampler in practice
+9
+−1
+0
+1
+2
+3
+4
+−4
+−2
+0
+2
+4
+θ
+Summary statistics
+x
+σ^
+0
+2
+4
+6
+8
+−4
+−2
+0
+2
+4
+θ
+Distance
+−1
+0
+1
+2
+3
+4
+−4
+−2
+0
+2
+4
+θ
+Summary statistics
+δ = 25%
+0
+2
+4
+6
+8
+−4
+−2
+0
+2
+4
+θ
+Distance
+−1
+0
+1
+2
+3
+4
+−4
+−2
+0
+2
+4
+θ
+Summary statistics
+δ = 2.5%
+0
+2
+4
+6
+8
+−4
+−2
+0
+2
+4
+θ
+Distance
+−2.0
+−1.5
+−1.0
+−0.5
+0.0
+0
+1
+2
+3
+4
+Posterior density
+θ
+Exact
+δ = 2.5%
+δ = 25%
+δ = 100%
+−4
+−2
+0
+2
+4
+0.0
+0.1
+0.2
+0.3
+0.4
+0.5
+P(X|θ=−1)
+X
+Figure 1.1: The upper-left plots show the synthetic (points) and the observed (vertical lines)
+summary statistics for diﬀerent acceptance ratios δ. The color intensity reﬂects the importance
+weights (calculated from the Epanechnikov kernel function), with plain white representing zero
+weight. The corresponding plots in the right-hand-side present the Euclidean distances between
+synthetic and observed summary statistics. Samples in light gray were assigned weight zero (and
+therefore rejected). The orange line represents the tolerance h induced by δ. The bottom-left plot
+compares the exact (red) and the ABC approximate posteriors (in gray). The bottom-right plot
+shows the density function for data, conditioned on the “true” parameter value θ = −1.
