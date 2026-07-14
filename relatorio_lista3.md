@@ -52,7 +52,10 @@ def simular_fila(lam, mu, tempo_max=TEMPO_MAX, n_serv=N_SERV):
         b[srv] = max(chegadas[i], b[srv]) + servicos[i]
         partidas[i] = b[srv]
 
-    return {'chegadas': chegadas, 'partidas': partidas, 'esperas': esperas, 'n_clientes': n_clientes}
+    return {
+        'chegadas': chegadas, 'partidas': partidas, 'esperas': esperas,
+        'n_clientes': n_clientes
+    }
 ```
 
 O cálculo do comprimento médio da fila ($L_q$), interpretado estritamente como os clientes esperando, sem incluir os que estão em atendimento, foi realizado através da integração temporal exata da quantidade de pessoas entre cada evento de chegada ou partida.
@@ -91,6 +94,7 @@ estagios = [
 ```
 
 **Resultados do ABC Refinado:**
+
 - **$\epsilon$ máximo aceito:** $0.4224$
 - **$\lambda$ (clientes/min):** Mediana de $0.3023$ (Tempo médio entre chegadas: $\approx 3.3$ min)
 - **$\mu$ (atendimentos/min):** Mediana de $0.1092$ (Tempo de atendimento: $\approx 9.2$ min)
@@ -121,7 +125,9 @@ p_h0 = np.mean(delta > 0)
 ```
 
 **Output:**
+
 $$ P(H_0 \mid \text{dados}) \approx 99.8\% $$
+
 **Conclusão:** Existe forte evidência estatística a favor de $H_0$, indicando instabilidade do sistema.
 
 ![Distribuição da Diferença para o Teste de Hipótese](q2_teste_hipotese.png)
@@ -148,8 +154,10 @@ for i in range(n_post):
 ```
 
 **Resultados Empíricos:**
+
 - **Mediana estimada:** $48$ cadeiras.
 - **Recomendação Conservadora (Quantil 95% das replicações):** $89$ cadeiras.
+
 Devido à instabilidade intrínseca de filas com $\rho > 1$, o número final do fim do expediente será severo; entretanto, analisando todo o período temporal, cerca de 89 cadeiras são suficientes na maioria dos cenários amostrados.
 
 ![Comprimento Médio da Fila e Recomendação de Cadeiras](q3_cadeiras.png)
@@ -176,8 +184,10 @@ w_2mm1 = (np.sum(res_b1['esperas']) + np.sum(res_b2['esperas'])) / (
 ```
 
 **Resultados:**
+
 - **Vantagem M/M/2:** Foi melhor (menor tempo médio de espera) em $\approx 56.4\%$ das simulações iteradas.
 - **Ganho em minutos ($\Delta w$):** A fila única economiza, em mediana, $11.4$ minutos no tempo de espera do usuário.
+
 Isto comprova por Monte Carlo a Teoria do Agrupamento (Pooling) de filas. A fila única é mais eficiente pois inviabiliza ociosidade assimétrica, evitando que um servidor fique livre enquanto outro tem fila acumulada.
 
 ![Comparação de Tempos de Espera: M/M/2 vs Duas Filas M/M/1](q4_comparacao_filas.png)
@@ -188,7 +198,6 @@ Isto comprova por Monte Carlo a Teoria do Agrupamento (Pooling) de filas. A fila
 
 Um gargalo notável no simulador original é sua limitação física: filas contendo humanos exibem **desistências** (Balking). O tamanho de uma fila pode desmotivar a entrada de novos clientes.
 
-**O Desafio do Modelo Generativo:**
 Se as pessoas desistem de entrar na fila ao vê-la grande, então a taxa de chegada $\lambda \approx 0.30$ estimada na Q1, que assumia que **ninguém desistia**, está subestimada. Para que, *mesmo com desistências*, a fila observe médias de $L_q = 22$ e $\bar{w} = 150$, o fluxo real de chegadas na porta precisa ser muito maior.
 
 Para responder a pergunta corretamente, implementou-se um **novo ABC focado na Q5**, onde o *próprio simulador do ABC* já incorpora uma probabilidade de desistência baseada numa função logística:
@@ -197,7 +206,9 @@ $$ P(\text{Desistir} \mid L_q = k) = \frac{1}{1 + e^{-\alpha (k - k_0)}} $$
 **Suposição Adotada:** Assumiu-se um perfil de cliente **Intermediário** ($\alpha=0.25, k_0=15$), no qual o cliente tem 50% de chance de desistir se a fila atingir 15 pessoas.
 
 **Resultados do ABC com Balking:**
+
 O ABC é executado buscando os pares $(\lambda, \mu)$ que gerariam os dados observados *sob esta regra de desistência*.
+
 - **$\lambda$ verdadeiro:** $\approx 1.8187$ clientes/min (muito superior aos $0.30$ sem balking).
 - **$\mu$ verdadeiro:** $\approx 0.0750$ atendimentos/min.
 - **Desistências no dia:** Mediana de **962 clientes perdidos** (IC 95%: [215, 1879]).

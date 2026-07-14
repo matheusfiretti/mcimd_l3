@@ -34,7 +34,7 @@ O modelo de linguagem (Claude) foi utilizado para auxiliar na estruturação
 e documentação do código Python, por meio de comentários e docstrings,
 e na explicação dos conceitos de ABC e teoria de filas presentes nos
 comentários ao longo do código. A lógica de resolução de cada questão
-foi desenvolvida com base no material de estudo indicado.
+foi desenvolvida com base no material de estudo.
 """
 
 # =====================================================================
